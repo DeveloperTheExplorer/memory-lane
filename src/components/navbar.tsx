@@ -28,12 +28,6 @@ export function Navbar() {
         <div className="flex flex-1 items-center justify-end space-x-2">
           {user ? (
             <>
-              <Button variant="default" asChild>
-                <Link href="/timeline/create" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Timeline
-                </Link>
-              </Button>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">

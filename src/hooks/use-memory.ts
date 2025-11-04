@@ -16,12 +16,18 @@ export const useMemory = (id: string) => {
 // Hook to get memories by timeline ID
 export const useMemoriesByTimeline = (
   timeline_id: string,
-  options?: { limit?: number; offset?: number }
+  options?: { limit?: number; offset?: number },
+  enabled?: boolean
 ) => {
-  return trpc.memory.getByTimelineId.useQuery({
-    timeline_id,
-    ...options,
-  });
+  return trpc.memory.getByTimelineId.useQuery(
+    {
+      timeline_id,
+      ...options,
+    },
+    {
+      enabled: enabled !== undefined ? enabled : !!timeline_id,
+    }
+  );
 };
 
 // Hook to get memory count by timeline ID
@@ -39,6 +45,9 @@ export const useCreateMemory = () => {
       utils.memory.getAll.invalidate();
       utils.memory.getByTimelineId.invalidate();
       utils.memory.getCountByTimelineId.invalidate();
+      // Also invalidate timeline queries to update memory counts
+      utils.timeline.getAllWithMemoryCounts.invalidate();
+      utils.timeline.getWithMemoryCount.invalidate();
     },
   });
 };

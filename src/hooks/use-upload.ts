@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getSupabaseAccessToken } from '@/lib/auth-utils';
 
 type UploadResult = {
   path: string;
@@ -100,6 +101,13 @@ export function useUpload(): UseUploadReturn {
         });
 
         xhr.open('POST', '/api/upload');
+
+        // Add Authorization header with Supabase access token
+        const accessToken = getSupabaseAccessToken();
+        if (accessToken) {
+          xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+        }
+
         xhr.send(formData);
       });
 
@@ -155,8 +163,16 @@ export async function uploadFile(file: File): Promise<UploadResult> {
   const formData = new FormData();
   formData.append('file', file);
 
+  // Get access token for authorization
+  const accessToken = getSupabaseAccessToken();
+  const headers: HeadersInit = {};
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   const response = await fetch('/api/upload', {
     method: 'POST',
+    headers,
     body: formData,
   });
 

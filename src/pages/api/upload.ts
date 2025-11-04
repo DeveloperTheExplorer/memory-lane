@@ -20,6 +20,21 @@ type UploadResponse = {
   error?: string;
 };
 
+/**
+ * Extract Supabase access token from Authorization header
+ */
+function extractAccessToken(authHeader: string | undefined): string | undefined {
+  if (!authHeader) return undefined;
+
+  // Authorization header format: "Bearer <token>"
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return undefined;
+  }
+
+  return parts[1];
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<UploadResponse>
@@ -32,6 +47,8 @@ export default async function handler(
   }
 
   try {
+    // Extract access token from Authorization header
+    const accessToken = extractAccessToken(req.headers.authorization);
     // Parse the form data using formidable
     const form = formidable({
       maxFileSize: 10 * 1024 * 1024, // 10MB
@@ -54,8 +71,8 @@ export default async function handler(
     // Read the file from the temporary location
     const fileBuffer = readFileSync(file.filepath);
 
-    // Upload the file using the UploadService
-    const uploadService = new UploadService();
+    // Upload the file using the UploadService with access token
+    const uploadService = new UploadService(accessToken);
     const result = await uploadService.upload(
       fileBuffer,
       file.originalFilename || 'unknown',
