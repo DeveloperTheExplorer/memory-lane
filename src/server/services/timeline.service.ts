@@ -5,7 +5,6 @@ type Timeline = Database['public']['Tables']['timeline']['Row'];
 type CreateTimelineInput = {
   name: string;
   description: string;
-  slug: string;
 };
 type UpdateTimelineInput = {
   name?: string;
@@ -16,11 +15,54 @@ type UpdateTimelineInput = {
 export class TimelineService {
   private supabase;
 
-  constructor() {
+  constructor(accessToken?: string) {
     this.supabase = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: accessToken ? {
+            Authorization: `Bearer ${accessToken}`
+          } : {}
+        }
+      }
     );
+  }
+
+  /**
+   * Generate a URL-friendly slug from a name
+   */
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  /**
+   * Generate a unique slug by appending a number if the slug already exists
+   */
+  private async generateUniqueSlug(baseName: string): Promise<string> {
+    let slug = this.generateSlug(baseName);
+    let counter = 1;
+
+    // Keep checking until we find a unique slug
+    while (true) {
+      const { data: existing } = await this.supabase
+        .from('timeline')
+        .select('id')
+        .eq('slug', slug)
+        .single();
+
+      if (!existing) {
+        return slug;
+      }
+
+      // Slug exists, try with a counter
+      slug = `${this.generateSlug(baseName)}-${counter}`;
+      counter++;
+    }
   }
 
   async getAll(options?: { limit?: number; offset?: number }): Promise<Timeline[]> {
@@ -75,23 +117,15 @@ export class TimelineService {
   }
 
   async create(input: CreateTimelineInput): Promise<Timeline> {
-    // Check if slug already exists
-    const { data: existing } = await this.supabase
-      .from('timeline')
-      .select('id')
-      .eq('slug', input.slug)
-      .single();
-
-    if (existing) {
-      throw new Error('A timeline with this slug already exists');
-    }
+    // Generate a unique slug from the name
+    const slug = await this.generateUniqueSlug(input.name);
 
     const { data, error } = await this.supabase
       .from('timeline')
       .insert({
         name: input.name,
         description: input.description,
-        slug: input.slug,
+        slug: slug,
       })
       .select()
       .single();

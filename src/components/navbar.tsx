@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { GalleryVerticalEnd, User, LogOut } from "lucide-react"
+import { GalleryVerticalEnd, User, LogOut, Plus } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
@@ -27,24 +27,32 @@ export function Navbar() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
           {user ? (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm">{user.email}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 py-2" align="end">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={signOut}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign Out
-                </Button>
-              </PopoverContent>
-            </Popover>
+            <>
+              <Button variant="default" asChild>
+                <Link href="/timeline/create" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Timeline
+                </Link>
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="text-sm">{user.email}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 py-2" align="end">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={signOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </PopoverContent>
+              </Popover>
+            </>
           ) : (
             <Button variant="ghost" asChild>
               <Link href="/login">Login</Link>

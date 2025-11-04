@@ -20,10 +20,17 @@ type UpdateMemoryInput = {
 export class MemoryService {
   private supabase;
 
-  constructor() {
+  constructor(accessToken?: string) {
     this.supabase = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: accessToken ? {
+            Authorization: `Bearer ${accessToken}`
+          } : {}
+        }
+      }
     );
   }
 

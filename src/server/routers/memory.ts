@@ -2,9 +2,6 @@ import { z } from 'zod';
 import { procedure, router } from '../trpc';
 import { MemoryService } from '../services/memory.service';
 
-// Initialize service
-const memoryService = new MemoryService();
-
 // Input validation schemas
 const createMemorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -46,21 +43,24 @@ export const memoryRouter = router({
         offset: z.number().nonnegative().optional(),
       }).optional()
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const memoryService = new MemoryService(ctx.accessToken);
       return memoryService.getAll(input || undefined);
     }),
 
   // Get a single memory by ID
   getById: procedure
     .input(getMemorySchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const memoryService = new MemoryService(ctx.accessToken);
       return memoryService.getById(input.id);
     }),
 
   // Get memories by timeline ID
   getByTimelineId: procedure
     .input(getMemoriesByTimelineSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const memoryService = new MemoryService(ctx.accessToken);
       const { timeline_id, ...options } = input;
       return memoryService.getByTimelineId(timeline_id, options);
     }),
@@ -68,14 +68,16 @@ export const memoryRouter = router({
   // Create a new memory
   create: procedure
     .input(createMemorySchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const memoryService = new MemoryService(ctx.accessToken);
       return memoryService.create(input);
     }),
 
   // Update an existing memory
   update: procedure
     .input(updateMemorySchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const memoryService = new MemoryService(ctx.accessToken);
       const { id, ...updateData } = input;
       return memoryService.update(id, updateData);
     }),
@@ -83,14 +85,16 @@ export const memoryRouter = router({
   // Delete a memory
   delete: procedure
     .input(deleteMemorySchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const memoryService = new MemoryService(ctx.accessToken);
       return memoryService.delete(input.id);
     }),
 
   // Get memory count by timeline
   getCountByTimelineId: procedure
     .input(z.object({ timeline_id: z.string().uuid() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const memoryService = new MemoryService(ctx.accessToken);
       const count = await memoryService.getCountByTimelineId(input.timeline_id);
       return { count };
     }),
