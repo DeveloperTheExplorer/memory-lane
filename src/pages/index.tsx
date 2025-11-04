@@ -1,11 +1,8 @@
 import { trpc } from '@/lib/trpc';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/contexts/auth-context';
-import { Button } from '@/components/ui/button';
 
 const Home = () => {
   const { data, isLoading } = trpc.hello.useQuery({ text: 'client' });
-  const { user, signOut } = useAuth();
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-purple-400 via-pink-300 to-blue-400 dark:from-purple-900 dark:via-pink-900 dark:to-blue-900">
