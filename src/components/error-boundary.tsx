@@ -94,5 +94,3 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
-ErrorBoundary.displayName = 'ErrorBoundary';
-
