@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { GalleryVerticalEnd, User, LogOut, Plus } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -11,12 +11,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      console.log('scrollPosition :>> ', scrollPosition);
+      setIsScrolled(scrollPosition > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b glass-strong p-4">
+    <header className={cn(
+      "sticky top-0 z-50 w-full border-b p-4 transition-shadow duration-200",
+      isScrolled ? 'glass-strong shadow-md' : ''
+    )}>
       <div className="flex items-center">
         <div className="mr-4 flex items-center gap-2">
           <SidebarTrigger className="mr-2" />

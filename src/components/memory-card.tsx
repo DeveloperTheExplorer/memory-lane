@@ -1,9 +1,21 @@
 import * as React from "react";
-import { Calendar, ImageIcon } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MoreVertical, Edit2, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Tables } from "@/types/supabase";
-import Image from "next/image";
+import { useAuth } from "@/contexts/auth-context";
+import { useUpdateMemory, useDeleteMemory } from "@/hooks/use-memory";
+import { useImageUpload } from "@/hooks/use-image-upload";
+import { MemoryCardView } from "./memory-card-view";
+import { MemoryCardEdit } from "./memory-card-edit";
+import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 
 type Memory = Tables<"memory">;
 
@@ -14,11 +26,95 @@ interface MemoryCardProps {
 }
 
 export const MemoryCard = ({ memory, isFirst, isLast }: MemoryCardProps) => {
-  const formattedDate = new Date(memory.date_of_event).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const { user } = useAuth();
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+  const [editedName, setEditedName] = React.useState(memory.name);
+  const [editedDescription, setEditedDescription] = React.useState(memory.description);
+  const [editedDate, setEditedDate] = React.useState(memory.date_of_event);
+
+  const updateMemory = useUpdateMemory();
+  const deleteMemory = useDeleteMemory();
+  const imageUpload = useImageUpload({
+    onError: (error) => alert(error),
   });
+
+  // Reset edit state when memory changes or editing is cancelled
+  React.useEffect(() => {
+    if (!isEditing) {
+      setEditedName(memory.name);
+      setEditedDescription(memory.description);
+      setEditedDate(memory.date_of_event);
+      imageUpload.reset();
+    }
+  }, [isEditing, memory, imageUpload.reset]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    try {
+      let finalImageUrl = memory.image_url;
+
+      // Upload new image if one was selected
+      if (imageUpload.imageFile) {
+        const uploadedUrl = await imageUpload.uploadImage();
+        if (uploadedUrl) {
+          finalImageUrl = uploadedUrl;
+        }
+      }
+
+      await updateMemory.mutateAsync({
+        id: memory.id,
+        name: editedName,
+        description: editedDescription,
+        date_of_event: editedDate,
+        image_url: finalImageUrl,
+      });
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update memory:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteMemory.mutateAsync({ id: memory.id });
+      setShowDeleteDialog(false);
+    } catch (error) {
+      console.error("Failed to delete memory:", error);
+    }
+  };
+
+  const actionsMenu = user && !isEditing ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <MoreVertical className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleEdit}>
+          <Edit2 className="mr-2 h-4 w-4" />
+          Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setShowDeleteDialog(true)}
+          className="text-destructive focus:text-destructive"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : null;
 
   return (
     <div className="relative flex gap-6 pb-8">
@@ -28,52 +124,39 @@ export const MemoryCard = ({ memory, isFirst, isLast }: MemoryCardProps) => {
           className={`w-4 h-4 rounded-full bg-primary ring-4 ring-background ${isFirst ? "mt-2" : ""
             }`}
         />
-        {!isLast && (
-          <div className="w-0.5 flex-1 bg-border mt-2" />
-        )}
+        {!isLast && <div className="w-0.5 flex-1 bg-border mt-2" />}
       </div>
 
-      {/* Memory Card */}
-      <Card className="flex-1 hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl mb-2">{memory.name}</CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <time dateTime={memory.date_of_event}>{formattedDate}</time>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
+      {/* Memory Card - View or Edit Mode */}
+      {isEditing ? (
+        <MemoryCardEdit
+          memory={memory}
+          editedName={editedName}
+          editedDescription={editedDescription}
+          editedDate={editedDate}
+          imagePreview={imageUpload.imagePreview}
+          onNameChange={setEditedName}
+          onDescriptionChange={setEditedDescription}
+          onDateChange={setEditedDate}
+          onImageClick={() => { }}
+          onImageChange={imageUpload.handleImageChange}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          isSaving={updateMemory.isPending || imageUpload.uploading}
+        />
+      ) : (
+        <MemoryCardView memory={memory} actions={actionsMenu} />
+      )}
 
-        <CardContent className="space-y-4">
-          {/* Memory Image */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-            <Image
-              src={memory.image_url}
-              alt={memory.name}
-              className="object-cover w-full h-full"
-              fill
-              onError={(e) => {
-                // Fallback if image fails to load
-                e.currentTarget.style.display = "none";
-                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = "flex";
-              }}
-            />
-            {/* Fallback for failed images */}
-            <div className="hidden absolute inset-0 items-center justify-center bg-muted">
-              <ImageIcon className="h-16 w-16 text-muted-foreground/50" />
-            </div>
-          </div>
-
-          {/* Memory Description */}
-          <CardDescription className="text-base leading-relaxed whitespace-pre-wrap">
-            {memory.description}
-          </CardDescription>
-        </CardContent>
-      </Card>
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        title="Delete Memory"
+        description="Are you sure you want to delete this memory? This action cannot be undone."
+        isDeleting={deleteMemory.isPending}
+      />
     </div>
   );
 };

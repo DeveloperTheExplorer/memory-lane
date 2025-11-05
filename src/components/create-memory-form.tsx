@@ -7,6 +7,7 @@ import { useCreateMemory } from "@/hooks/use-memory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -227,19 +228,22 @@ const MemoryFormContent = ({
       </div>
 
       {/* Date */}
-      <div className="space-y-2">
-        <Label htmlFor="date_of_event">Date of Event *</Label>
-        <Input
+      <div>
+        <DatePicker
+          label="Date of Event *"
           id="date_of_event"
-          type="date"
           value={formData.date_of_event}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, date_of_event: e.target.value }))
-          }
-          disabled={isSubmitting}
+          onChange={(date) => {
+            if (date) {
+              setFormData((prev) => ({
+                ...prev,
+                date_of_event: date.toISOString().split("T")[0],
+              }));
+            }
+          }}
         />
         {errors.date_of_event && (
-          <p className="text-sm text-destructive">{errors.date_of_event}</p>
+          <p className="text-sm text-destructive mt-2">{errors.date_of_event}</p>
         )}
       </div>
 
