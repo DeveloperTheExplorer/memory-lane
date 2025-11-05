@@ -79,7 +79,7 @@ TanStack Query caches & updates UI
 const handleSubmit = async (e) => {
   // Upload image first
   const uploadResult = await upload(formData.image);
-  
+
   // 3. Call tRPC mutation
   await createMemory.mutateAsync({
     timeline_id: timelineId,
@@ -108,7 +108,7 @@ async create(input: CreateMemoryInput): Promise<Memory> {
     .insert({ ...input })
     .select()
     .single();
-  
+
   if (error) throw new Error(error.message);
   return data;
 }
@@ -205,12 +205,14 @@ src/
 ### Next.js (Pages Router)
 
 **Why Pages Router?**
+
 - Simpler mental model for this application size
 - File-based routing
 - API routes for tRPC
 - Mature ecosystem
 
 **Key Pages:**
+
 - `/` - Home page (timeline list)
 - `/timeline/create` - Create timeline
 - `/timeline/[slug]` - Timeline detail & memories
@@ -219,17 +221,19 @@ src/
 ### tRPC
 
 **Benefits:**
+
 - End-to-end type safety
 - No API client boilerplate
 - Auto-completion in IDE
 - Runtime type validation with Zod
 
 **Router Structure:**
+
 ```typescript
 // server/routers/_app.ts
 export const appRouter = router({
-  timeline: timelineRouter,  // Timeline CRUD
-  memory: memoryRouter,      // Memory CRUD
+  timeline: timelineRouter, // Timeline CRUD
+  memory: memoryRouter, // Memory CRUD
 });
 
 export type AppRouter = typeof appRouter;
@@ -238,12 +242,14 @@ export type AppRouter = typeof appRouter;
 ### Supabase
 
 **Services Used:**
+
 1. **PostgreSQL Database** - Data storage
 2. **Auth** - User authentication
 3. **Storage** - Image uploads
 4. **Row Level Security** - Data access control
 
 **Connection Pattern:**
+
 ```typescript
 // Service classes create authenticated clients
 const supabase = createClient(
@@ -251,10 +257,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   {
     global: {
-      headers: accessToken ? {
-        Authorization: `Bearer ${accessToken}`
-      } : {}
-    }
+      headers: accessToken
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : {},
+    },
   }
 );
 ```
@@ -283,12 +291,12 @@ const supabase = createClient(
 // contexts/auth-context.tsx
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  
+
   // Listen for auth state changes
   supabase.auth.onAuthStateChange((event, session) => {
     setUser(session?.user ?? null);
   });
-  
+
   return (
     <AuthContext.Provider value={{ user, signOut }}>
       {children}
@@ -304,13 +312,13 @@ export const AuthProvider = ({ children }) => {
 export const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const router = useRouter();
-  
+
   if (loading) return <Loader />;
   if (!user) {
-    router.push('/login');
+    router.push("/login");
     return null;
   }
-  
+
   return children;
 };
 ```
@@ -324,41 +332,117 @@ export const ProtectedRoute = ({ children }) => {
    ↓
 3. POST /api/upload with FormData
    ↓
-4. Server validates & uploads to Supabase Storage
+4. Server parses multipart form data (Formidable)
    ↓
-5. Returns public URL & storage key
+5. Server validates file & uploads to Supabase Storage
    ↓
-6. Create/Update memory with image references
+6. Returns public URL & storage key
+   ↓
+7. Create/Update memory with image references
 ```
 
 ### Upload Implementation
 
+The upload system uses **Formidable**, a robust Node.js library for parsing form data, especially multipart/form-data which is used for file uploads.
+
+**Why Formidable?**
+
+- ✅ **Production-Ready** - Battle-tested library used by millions
+- ✅ **Streaming Parser** - Memory-efficient for large files
+- ✅ **Built-in Validation** - File size limits and type checking
+- ✅ **Security** - Prevents malicious file uploads
+- ✅ **Performance** - Fast, non-blocking I/O
+- ✅ **Flexibility** - Supports multiple files and fields
+- ✅ **Type Safety** - TypeScript definitions available
+
+**Alternative Considered:** Next.js built-in body parser doesn't support multipart/form-data, so Formidable fills this critical gap.
+
 ```typescript
 // pages/api/upload.ts
+import formidable from "formidable";
+import { createReadStream } from "fs";
+
+export const config = {
+  api: {
+    bodyParser: false, // Disable Next.js body parser for file uploads
+  },
+};
+
 export default async function handler(req, res) {
-  // 1. Parse multipart form data
-  const { files } = await parseForm(req);
-  
-  // 2. Validate file
-  if (!isValidImage(file)) {
-    return res.status(400).json({ error: 'Invalid file' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
-  
-  // 3. Upload to Supabase Storage
+
+  // 1. Parse multipart form data with Formidable
+  const form = formidable({
+    maxFileSize: 10 * 1024 * 1024, // 10MB limit
+    keepExtensions: true,
+    filter: (part) => {
+      // Only accept images
+      return part.mimetype?.startsWith("image/") || false;
+    },
+  });
+
+  const { files } = await form.parse(req);
+  const file = files.file?.[0];
+
+  if (!file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  // 2. Validate file
+  if (!file.mimetype?.startsWith("image/")) {
+    return res.status(400).json({ error: "File must be an image" });
+  }
+
+  // 3. Generate unique filename
+  const timestamp = Date.now();
+  const filename = `${timestamp}-${file.originalFilename}`;
+
+  // 4. Upload to Supabase Storage using file stream
+  const fileStream = createReadStream(file.filepath);
   const { data, error } = await supabase.storage
-    .from('memory-images')
-    .upload(path, file);
-  
-  // 4. Return public URL
-  const publicUrl = supabase.storage
-    .from('memory-images')
-    .getPublicUrl(path);
-  
+    .from("memory-images")
+    .upload(filename, fileStream, {
+      contentType: file.mimetype,
+    });
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  // 5. Get public URL
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("memory-images").getPublicUrl(filename);
+
   return res.json({
     success: true,
-    data: { publicUrl, path }
+    data: {
+      publicUrl,
+      path: filename,
+    },
   });
 }
+```
+
+### Upload Progress Tracking
+
+The frontend tracks upload progress using XMLHttpRequest:
+
+```typescript
+// hooks/use-upload.ts
+const xhr = new XMLHttpRequest();
+
+xhr.upload.addEventListener("progress", (e) => {
+  if (e.lengthComputable) {
+    const progress = Math.round((e.loaded / e.total) * 100);
+    setProgress(progress);
+  }
+});
+
+xhr.open("POST", "/api/upload");
+xhr.send(formData);
 ```
 
 ## State Management
@@ -403,15 +487,15 @@ procedure.mutation(async ({ input, ctx }) => {
 ```typescript
 // All inputs validated with Zod
 const createMemorySchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().min(1, 'Description is required'),
-  image_url: z.string().url('Must be a valid URL'),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  image_url: z.string().url("Must be a valid URL"),
   date_of_event: z.string(),
   timeline_id: z.string().uuid(),
 });
 
 create: procedure
-  .input(createMemorySchema)  // Auto-validates
+  .input(createMemorySchema) // Auto-validates
   .mutation(async ({ input }) => {
     // input is type-safe and validated
   });
@@ -422,6 +506,7 @@ create: procedure
 ### Tables
 
 #### timeline
+
 ```sql
 CREATE TABLE timeline (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -435,6 +520,7 @@ CREATE TABLE timeline (
 ```
 
 #### memory
+
 ```sql
 CREATE TABLE memory (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -469,10 +555,12 @@ CREATE POLICY "Users can update own timelines"
 ### Component Patterns
 
 1. **Container/Presentational Pattern**
+
    - Container: Handles data fetching & logic
    - Presentational: Pure UI rendering
 
 2. **Compound Components**
+
    - Example: `Card`, `CardHeader`, `CardContent`
 
 3. **Render Props (rare)**
@@ -504,6 +592,7 @@ const sortedMemories = useMemo(() => {
 **Problem:** N+1 query when fetching timelines with memory counts
 
 **Before:**
+
 ```typescript
 // Fetches timelines, then counts for each (N+1)
 const timelines = await getTimelines();
@@ -513,11 +602,10 @@ for (const timeline of timelines) {
 ```
 
 **After:**
+
 ```typescript
 // Single query with JOIN
-const timelines = await supabase
-  .from('timeline')
-  .select('*, memory(count)');
+const timelines = await supabase.from("timeline").select("*, memory(count)");
 ```
 
 ### 2. Component Memoization
@@ -553,7 +641,7 @@ const timelines = await supabase
 ```typescript
 // lib/error-utils.ts
 export function logError(error: unknown, context?: object) {
-  console.error('[Error]', formatErrorMessage(error));
+  console.error("[Error]", formatErrorMessage(error));
   // In production, send to error tracking service
   // e.g., Sentry, LogRocket, etc.
 }
@@ -565,8 +653,8 @@ export function logError(error: unknown, context?: object) {
 try {
   await createMemory.mutateAsync(data);
 } catch (error) {
-  logError(error, { context: 'Memory creation' });
-  toast.error('Failed to create memory. Please try again.');
+  logError(error, { context: "Memory creation" });
+  toast.error("Failed to create memory. Please try again.");
 }
 ```
 
@@ -596,6 +684,7 @@ Potential improvements for scaling:
 ## Conclusion
 
 Memory Lane demonstrates modern full-stack TypeScript development with:
+
 - Type-safe APIs (tRPC)
 - Robust authentication (Supabase)
 - Performant data fetching (TanStack Query)
@@ -603,4 +692,3 @@ Memory Lane demonstrates modern full-stack TypeScript development with:
 - Professional UX (Responsive, accessible, error-handled)
 
 The codebase is maintainable, scalable, and follows industry best practices.
-

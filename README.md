@@ -2,7 +2,7 @@
 
 A beautiful, full-stack web application for creating and managing personal timelines and memories. Built with Next.js, TypeScript, tRPC, and Supabase.
 
-![Memory Lane](./instructions/memory_lane.png)
+![Memory Lane](./instructions/finished_project.png)
 
 ## Features
 
