@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { MemoryCardSkeleton } from "@/components/memory-card";
+import { MemoryCardSkeleton } from "@/components/memory/memory-card";
 
 export const TimelineDetailSkeleton = () => {
   return (

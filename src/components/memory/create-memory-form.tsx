@@ -1,14 +1,14 @@
-import * as React from "react";
-import { useState } from "react";
-import { X, Loader2, Upload as UploadIcon } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useUpload, validateImageFile } from "@/hooks/use-upload";
-import { useCreateMemory } from "@/hooks/use-memory";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
-import { getCurrentDate, fromDateObject } from "@/lib/date-utils";
+import { useState } from 'react';
+import { X, Loader2, Upload as UploadIcon } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useUpload, validateImageFile } from '@/hooks/use-upload';
+import { useCreateMemory } from '@/hooks/use-memory';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TextareaField } from '@/components/shared/textarea-field';
+import { getCurrentDate, fromDateObject } from '@/lib/date-utils';
 import {
   Dialog,
   DialogContent,
@@ -31,18 +31,18 @@ import {
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
 
-interface CreateMemoryFormProps {
+export type CreateMemoryFormProps = {
   timelineId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
+};
 
-interface FormData {
+type FormData = {
   name: string;
   description: string;
   date_of_event: string;
   image: File | null;
-}
+};
 
 const MemoryFormContent = ({
   timelineId,
@@ -250,22 +250,19 @@ const MemoryFormContent = ({
       </div>
 
       {/* Description */}
-      <div className="space-y-2">
-        <Label htmlFor="description">Description *</Label>
-        <textarea
-          id="description"
-          placeholder="Share the story behind this memory..."
-          value={formData.description}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, description: e.target.value }))
-          }
-          disabled={isSubmitting}
-          className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        {errors.description && (
-          <p className="text-sm text-destructive">{errors.description}</p>
-        )}
-      </div>
+      <TextareaField
+        id="description"
+        label="Description"
+        placeholder="Share the story behind this memory..."
+        value={formData.description}
+        onChange={(e) =>
+          setFormData((prev) => ({ ...prev, description: e.target.value }))
+        }
+        disabled={isSubmitting}
+        error={errors.description}
+        rows={5}
+        required
+      />
 
       {/* Upload Progress */}
       {uploading && (
@@ -359,4 +356,6 @@ export function CreateMemoryForm({
     </Dialog>
   );
 }
+
+CreateMemoryForm.displayName = 'CreateMemoryForm';
 

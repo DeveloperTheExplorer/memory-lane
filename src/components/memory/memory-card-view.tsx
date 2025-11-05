@@ -1,18 +1,18 @@
-import * as React from "react";
-import { Calendar, ImageIcon } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Tables } from "@/types/supabase";
-import Image from "next/image";
-import { formatDate } from "@/lib/date-utils";
+import { ReactNode, memo } from 'react';
+import { Calendar, ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Tables } from '@/types/supabase';
+import { formatDate } from '@/lib/date-utils';
 
-type Memory = Tables<"memory">;
+type Memory = Tables<'memory'>;
 
-interface MemoryCardViewProps {
+export type MemoryCardViewProps = {
   memory: Memory;
-  actions?: React.ReactNode;
-}
+  actions?: ReactNode;
+};
 
-export const MemoryCardView = ({ memory, actions }: MemoryCardViewProps) => {
+const MemoryCardViewComponent = ({ memory, actions }: MemoryCardViewProps) => {
   const formattedDate = formatDate(memory.date_of_event);
 
   return (
@@ -59,4 +59,8 @@ export const MemoryCardView = ({ memory, actions }: MemoryCardViewProps) => {
     </Card>
   );
 };
+
+MemoryCardViewComponent.displayName = 'MemoryCardView';
+
+export const MemoryCardView = memo(MemoryCardViewComponent);
 

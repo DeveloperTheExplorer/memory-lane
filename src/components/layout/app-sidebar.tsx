@@ -1,9 +1,8 @@
-import * as React from "react"
-import Link from "next/link"
-import { useRouter } from "next/router"
-import { GalleryVerticalEnd, Home, Plus, Image } from "lucide-react"
-import { useTimelinesWithMemoryCounts } from "@/hooks/use-timeline"
-
+import { ComponentProps } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { GalleryVerticalEnd, Home, Plus, Image } from 'lucide-react';
+import { useTimelinesWithMemoryCounts } from '@/hooks/use-timeline';
 import {
   Sidebar,
   SidebarContent,
@@ -15,34 +14,12 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/contexts/auth-context"
+} from '../ui/sidebar';
+import { SidebarSkeleton } from '../ui/skeletons';
+import { Button } from '../ui/button';
+import { useAuth } from '@/contexts/auth-context';
 
-const SidebarSkeleton = () => {
-  return (
-    <SidebarContent>
-      <SidebarGroup>
-        <SidebarMenu className="gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <SidebarMenuItem key={i}>
-              <div className="px-2 py-1.5">
-                <Skeleton className="h-5 w-32 mb-2" />
-                <div className="ml-4 space-y-1.5">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-28" />
-                </div>
-              </div>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroup>
-    </SidebarContent>
-  )
-}
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const router = useRouter()
   const { data: timelines, isLoading } = useTimelinesWithMemoryCounts()
@@ -73,7 +50,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       {isLoading ? (
-        <SidebarSkeleton />
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarSkeleton />
+          </SidebarGroup>
+        </SidebarContent>
       ) : (
         <SidebarContent>
           <SidebarGroup>
@@ -152,5 +133,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarContent>
       )}
     </Sidebar>
-  )
+  );
 }
+
+AppSidebar.displayName = 'AppSidebar';

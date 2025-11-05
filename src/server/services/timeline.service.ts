@@ -241,6 +241,7 @@ export class TimelineService {
   async getAllWithMemoryCounts(
     options?: { limit?: number; offset?: number }
   ): Promise<Array<Timeline & { memory_count: number }>> {
+    // Fetch timelines first
     let query = this.supabase
       .from('timeline')
       .select('*')
@@ -260,20 +261,35 @@ export class TimelineService {
       throw new Error(`Failed to fetch timelines: ${error.message}`);
     }
 
-    // Get memory counts for each timeline
-    const timelinesWithCounts = await Promise.all(
-      (timelines || []).map(async (timeline) => {
-        const { count } = await this.supabase
-          .from('memory')
-          .select('*', { count: 'exact', head: true })
-          .eq('timeline_id', timeline.id);
+    if (!timelines || timelines.length === 0) {
+      return [];
+    }
 
-        return {
-          ...timeline,
-          memory_count: count || 0,
-        };
-      })
-    );
+    // Get memory counts for all timelines in a single query using IN clause
+    // This is much more efficient than N+1 individual queries
+    const timelineIds = timelines.map(t => t.id);
+    
+    const { data: memoryCounts, error: countError } = await this.supabase
+      .from('memory')
+      .select('timeline_id')
+      .in('timeline_id', timelineIds);
+
+    if (countError) {
+      throw new Error(`Failed to fetch memory counts: ${countError.message}`);
+    }
+
+    // Count memories per timeline
+    const countMap = new Map<string, number>();
+    (memoryCounts || []).forEach((memory) => {
+      const count = countMap.get(memory.timeline_id) || 0;
+      countMap.set(memory.timeline_id, count + 1);
+    });
+
+    // Combine timelines with their counts
+    const timelinesWithCounts = timelines.map((timeline) => ({
+      ...timeline,
+      memory_count: countMap.get(timeline.id) || 0,
+    }));
 
     return timelinesWithCounts;
   }

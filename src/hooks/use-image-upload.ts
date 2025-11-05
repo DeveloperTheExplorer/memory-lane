@@ -1,16 +1,16 @@
-import * as React from "react";
-import { useUpload, validateImageFile } from "./use-upload";
+import { useState, useCallback } from 'react';
+import { useUpload, validateImageFile } from './use-upload';
 
-interface UseImageUploadOptions {
+export type UseImageUploadOptions = {
   onError?: (error: string) => void;
-}
+};
 
 export function useImageUpload(options?: UseImageUploadOptions) {
-  const [imageFile, setImageFile] = React.useState<File | null>(null);
-  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { upload, uploading, error } = useUpload();
 
-  const handleImageSelect = React.useCallback(
+  const handleImageSelect = useCallback(
     (file: File | null) => {
       if (!file) {
         setImageFile(null);
@@ -34,7 +34,7 @@ export function useImageUpload(options?: UseImageUploadOptions) {
     [options]
   );
 
-  const handleImageChange = React.useCallback(
+  const handleImageChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       handleImageSelect(file || null);
@@ -42,13 +42,13 @@ export function useImageUpload(options?: UseImageUploadOptions) {
     [handleImageSelect]
   );
 
-  const uploadImage = React.useCallback(async () => {
+  const uploadImage = useCallback(async () => {
     if (!imageFile) return null;
     const result = await upload(imageFile);
     return result;
   }, [imageFile, upload]);
 
-  const reset = React.useCallback(() => {
+  const reset = useCallback(() => {
     setImageFile(null);
     setImagePreview(null);
   }, []);

@@ -1,14 +1,15 @@
-import { useState } from 'react'
-import Head from 'next/head'
-import { useRouter } from 'next/router'
-import { ProtectedRoute } from '@/components/protected-route'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useCreateTimeline } from '@/hooks/use-timeline'
-import { Loader2, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { useState } from 'react';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { TextareaField } from '@/components/shared/textarea-field';
+import { useCreateTimeline } from '@/hooks/use-timeline';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const CreateTimelinePage = () => {
   const router = useRouter()
@@ -117,23 +118,16 @@ const CreateTimelinePage = () => {
 
               {/* Description Field */}
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <textarea
+                <TextareaField
                   id="description"
+                  label="Description"
                   placeholder="Describe what this timeline is about..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className={cn(
-                    "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[100px] resize-y",
-                    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-                    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                    errors.description && 'border-destructive'
-                  )}
                   disabled={createTimeline.isPending}
+                  error={errors.description}
+                  rows={4}
                 />
-                {errors.description && (
-                  <p className="text-sm text-destructive">{errors.description}</p>
-                )}
                 <p className="text-xs text-muted-foreground">
                   A URL-friendly slug will be automatically generated from the timeline name
                 </p>
@@ -176,8 +170,10 @@ const CreateTimelinePage = () => {
         </main>
       </div>
     </ProtectedRoute>
-  )
-}
+  );
+};
 
-export default CreateTimelinePage
+CreateTimelinePage.displayName = 'CreateTimelinePage';
+
+export default CreateTimelinePage;
 

@@ -1,29 +1,24 @@
-import { useState, useEffect } from "react";
-import { Pencil, Trash2, MoreVertical, X, Check, Share2, Copy, CheckCheck, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useState, useEffect } from 'react';
+import { Pencil, Trash2, X, Check, Share2, Copy, CheckCheck, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ActionDropdown } from '@/components/shared/action-dropdown';
+import { TextareaField } from '@/components/shared/textarea-field';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { toast } from "sonner";
+} from '@/components/ui/popover';
+import { toast } from 'sonner';
 
-interface TimelineHeaderProps {
+export type TimelineHeaderProps = {
   name: string;
   description: string;
   isAuthenticated: boolean;
   onUpdate: (data: { name: string; description: string }) => Promise<void>;
   onDelete: () => void;
   isUpdating?: boolean;
-}
+};
 
 export const TimelineHeader = ({
   name,
@@ -114,8 +109,8 @@ export const TimelineHeader = ({
           <div className="flex items-center gap-2">
             <Popover open={isSharePopoverOpen} onOpenChange={setIsSharePopoverOpen}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Share2 className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Share timeline">
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80" align="end">
@@ -155,26 +150,13 @@ export const TimelineHeader = ({
             </Popover>
 
             {isAuthenticated && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleStartEdit}>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Edit Timeline
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={onDelete}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Timeline
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ActionDropdown
+                onEdit={handleStartEdit}
+                onDelete={onDelete}
+                editLabel="Edit Timeline"
+                deleteLabel="Delete Timeline"
+                aria-label="Timeline actions"
+              />
             )}
           </div>
         )}
@@ -204,15 +186,12 @@ export const TimelineHeader = ({
       </div>
 
       {isEditing ? (
-        <textarea
+        <TextareaField
           value={editFormData.description}
           onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-          className={cn(
-            "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input w-full min-w-0 rounded-md border bg-transparent px-3 py-2 shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px] resize-y mb-6 text-lg",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-          )}
           placeholder="Timeline description"
           disabled={isUpdating}
+          className="mb-6 text-lg min-h-[100px]"
         />
       ) : (
         <p className="text-muted-foreground text-lg leading-relaxed mb-6">
@@ -222,4 +201,6 @@ export const TimelineHeader = ({
     </div>
   );
 };
+
+TimelineHeader.displayName = 'TimelineHeader';
 

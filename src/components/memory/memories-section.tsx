@@ -1,7 +1,7 @@
 import { Plus, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MemoryCard } from "@/components/memory-card";
-import { EmptyMemoriesState } from "@/components/empty-memories-state";
+import { MemoryCard } from "@/components/memory/memory-card";
+import { EmptyMemoriesState } from "@/components/memory/empty-memories-state";
 import type { Tables } from "@/types/supabase";
 import {
   DropdownMenu,

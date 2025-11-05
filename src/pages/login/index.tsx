@@ -1,5 +1,5 @@
-import Head from "next/head"
-import { LoginForm } from "@/components/login-form"
+import Head from 'next/head';
+import { LoginForm } from '@/components/auth/login-form';
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/router"
 import { useEffect } from "react"

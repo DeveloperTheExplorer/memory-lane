@@ -12,7 +12,7 @@ export function Footer({ className, ...props }: React.ComponentProps<"footer">) 
       {...props}
     >
       <div className="container mx-auto px-4">
-        Made with <span className="text-red-500">♥</span> by Arvin
+        Made with <span className="text-red-500">♥</span> by Arvin for <b>Planned</b>
       </div>
     </footer>
   )

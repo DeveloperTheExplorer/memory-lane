@@ -1,36 +1,20 @@
-import Link from "next/link";
-import Head from "next/head";
-import { Calendar, Image, Plus } from "lucide-react";
-import { useTimelinesWithMemoryCounts } from "@/hooks/use-timeline";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/contexts/auth-context";
-import { formatDateShort } from "@/lib/date-utils";
-
-const TimelineCardSkeleton = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-3/4 mb-2" />
-        <Skeleton className="h-4 w-full" />
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+import Link from 'next/link';
+import Head from 'next/head';
+import { Calendar, Image, Plus } from 'lucide-react';
+import { ErrorBoundary } from '@/components/error-boundary';
+import { useTimelinesWithMemoryCounts } from '@/hooks/use-timeline';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { TimelineCardSkeleton } from '@/components/ui/skeletons';
+import { useAuth } from '@/contexts/auth-context';
+import { formatDateShort } from '@/lib/date-utils';
 
 const Home = () => {
   const { user } = useAuth();
   const { data: timelines, isLoading, error } = useTimelinesWithMemoryCounts();
 
   return (
-    <>
+    <ErrorBoundary>
       <Head>
         <title>Memory Lane - Your Personal Collection of Timelines</title>
         <meta
@@ -55,8 +39,8 @@ const Home = () => {
           </div>
           {user && (
             <Link href="/timeline/create" className="self-start sm:self-auto">
-              <Button size="lg" className="gap-2">
-                <Plus className="h-5 w-5" />
+              <Button size="lg" className="gap-2" aria-label="Create new timeline">
+                <Plus className="h-5 w-5" aria-hidden="true" />
                 <span className="hidden sm:inline">Create Timeline</span>
                 <span className="sm:hidden">Create</span>
               </Button>
@@ -149,8 +133,10 @@ const Home = () => {
           </div>
         )}
       </div>
-    </>
+    </ErrorBoundary>
   );
-}
+};
+
+Home.displayName = 'Home';
 
 export default Home;

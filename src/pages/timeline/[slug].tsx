@@ -1,20 +1,22 @@
-import { useState } from "react";
-import Head from "next/head";
-import { useRouter } from "next/router";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { useTimelineBySlug, useDeleteTimeline, useUpdateTimeline } from "@/hooks/use-timeline";
-import { useMemoriesByTimeline } from "@/hooks/use-memory";
-import { Button } from "@/components/ui/button";
-import { CreateMemoryForm } from "@/components/create-memory-form";
-import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
-import { TimelineDetailSkeleton } from "@/components/timeline-detail-skeleton";
-import { TimelineHeader } from "@/components/timeline-header";
-import { TimelineStats } from "@/components/timeline-stats";
-import { MemoriesSection, type SortOrder } from "@/components/memories-section";
-import { TimelineErrorState } from "@/components/timeline-error-state";
-import { useAuth } from "@/contexts/auth-context";
-import { compareDates, formatDate } from "@/lib/date-utils";
+import { useState } from 'react';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { ErrorBoundary } from '@/components/error-boundary';
+import { useTimelineBySlug, useDeleteTimeline, useUpdateTimeline } from '@/hooks/use-timeline';
+import { useMemoriesByTimeline } from '@/hooks/use-memory';
+import { Button } from '@/components/ui/button';
+import { CreateMemoryForm } from '@/components/memory/create-memory-form';
+import { DeleteConfirmationDialog } from '@/components/shared/delete-confirmation-dialog';
+import { TimelineDetailSkeleton } from '@/components/timeline/timeline-detail-skeleton';
+import { TimelineHeader } from '@/components/timeline/timeline-header';
+import { TimelineStats } from '@/components/timeline/timeline-stats';
+import { MemoriesSection, type SortOrder } from '@/components/memory/memories-section';
+import { TimelineErrorState } from '@/components/timeline/timeline-error-state';
+import { useAuth } from '@/contexts/auth-context';
+import { compareDates, formatDate } from '@/lib/date-utils';
+import { logError } from '@/lib/error-utils';
 
 export default function TimelineDetailPage() {
   const { user } = useAuth();
@@ -58,9 +60,9 @@ export default function TimelineDetailPage() {
 
     try {
       await deleteTimeline.mutateAsync({ id: timeline.id });
-      router.push("/");
+      router.push('/');
     } catch (error) {
-      console.error("Failed to delete timeline:", error);
+      logError(error, { context: 'Timeline deletion', timelineId: timeline.id });
     }
   };
 
@@ -98,7 +100,7 @@ export default function TimelineDetailPage() {
   const pageDescription = timeline.description || `Explore memories from ${timeline.name}. A personal timeline of cherished moments and experiences.`;
 
   return (
-    <>
+    <ErrorBoundary>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
@@ -159,7 +161,9 @@ export default function TimelineDetailPage() {
           isDeleting={deleteTimeline.isPending}
         />
       </div>
-    </>
+    </ErrorBoundary>
   );
 }
+
+TimelineDetailPage.displayName = 'TimelineDetailPage';
 

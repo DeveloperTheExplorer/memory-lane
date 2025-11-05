@@ -1,17 +1,17 @@
-import * as React from "react";
-import { Check, X, Upload, ImageIcon } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
-import type { Tables } from "@/types/supabase";
-import Image from "next/image";
-import { fromDateObject } from "@/lib/date-utils";
+import { useRef, memo } from 'react';
+import { Check, X, Upload, ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
+import type { Tables } from '@/types/supabase';
+import { fromDateObject } from '@/lib/date-utils';
 
-type Memory = Tables<"memory">;
+type Memory = Tables<'memory'>;
 
-interface MemoryCardEditProps {
+export type MemoryCardEditProps = {
   memory: Memory;
   editedName: string;
   editedDescription: string;
@@ -25,9 +25,9 @@ interface MemoryCardEditProps {
   onSave: () => void;
   onCancel: () => void;
   isSaving: boolean;
-}
+};
 
-export const MemoryCardEdit = ({
+const MemoryCardEditComponent = ({
   memory,
   editedName,
   editedDescription,
@@ -42,7 +42,7 @@ export const MemoryCardEdit = ({
   onCancel,
   isSaving,
 }: MemoryCardEditProps) => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -137,4 +137,8 @@ export const MemoryCardEdit = ({
     </Card>
   );
 };
+
+MemoryCardEditComponent.displayName = 'MemoryCardEdit';
+
+export const MemoryCardEdit = memo(MemoryCardEditComponent);
 

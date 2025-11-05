@@ -1,20 +1,18 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { GalleryVerticalEnd, User, LogOut, Plus } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/contexts/auth-context"
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { GalleryVerticalEnd, User, LogOut } from 'lucide-react';
+import { SidebarTrigger } from '../ui/sidebar';
+import { Button } from '../ui/button';
+import { useAuth } from '@/contexts/auth-context';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { ThemeToggle } from "@/components/theme-toggle"
+} from '../ui/popover';
+import { cn } from '@/lib/utils';
+import { ThemeToggle } from '../shared/theme-toggle';
 
-export function Navbar() {
+export const Navbar = () => {
   const { user, signOut } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -47,8 +45,8 @@ export function Navbar() {
             <>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
+                  <Button variant="ghost" className="flex items-center gap-2" aria-label="User menu">
+                    <User className="h-4 w-4" aria-hidden="true" />
                     <span className="text-sm">{user.email}</span>
                   </Button>
                 </PopoverTrigger>
@@ -72,8 +70,10 @@ export function Navbar() {
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Navbar
+Navbar.displayName = 'Navbar';
+
+export default Navbar;
 

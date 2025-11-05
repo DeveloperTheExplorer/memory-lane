@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { trpc } from "@/lib/trpc";
 
 import "./globals.css";
-import BaseLayout from "@/components/base-layout";
+import BaseLayout from "@/components/layout/base-layout";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ThemeProvider } from "@/contexts/theme-provider";
 
