@@ -2,6 +2,10 @@
 
 A beautiful, full-stack web application for creating and managing personal timelines and memories. Built with Next.js, TypeScript, tRPC, and Supabase.
 
+🌐 **Live Demo:** [https://memory-lane.arvini.co/](https://memory-lane.arvini.co/)
+
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://memory-lane.arvini.co/)
+
 ![Memory Lane](./instructions/finished_project.png)
 
 ## Features
@@ -215,14 +219,30 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed architecture documentation
 
 ## Deployment
 
-### Vercel (Recommended)
+### Production Deployment
+
+**Live Application:** [https://memory-lane.arvini.co/](https://memory-lane.arvini.co/)
+
+This project is deployed on **Vercel**, providing:
+- Global CDN distribution
+- Automatic HTTPS
+- Instant deployments
+- Zero-configuration setup
+
+### Deploy Your Own
+
+#### Vercel (Recommended)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/memory-lane)
 
 1. Push your code to GitHub
 2. Import project in Vercel
-3. Add environment variables
+3. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 4. Deploy!
 
-### Other Platforms
+#### Other Platforms
 
 The app can be deployed to any platform supporting Next.js:
 
@@ -230,12 +250,14 @@ The app can be deployed to any platform supporting Next.js:
 - AWS Amplify
 - Railway
 - Render
+- DigitalOcean App Platform
 
 Make sure to:
 
 1. Set environment variables
 2. Configure build command: `npm run build`
 3. Set output directory to `.next`
+4. Node.js version: 18.x or higher
 
 ## Contributing
 
