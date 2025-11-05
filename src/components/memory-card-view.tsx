@@ -3,6 +3,7 @@ import { Calendar, ImageIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/types/supabase";
 import Image from "next/image";
+import { formatDate } from "@/lib/date-utils";
 
 type Memory = Tables<"memory">;
 
@@ -12,11 +13,7 @@ interface MemoryCardViewProps {
 }
 
 export const MemoryCardView = ({ memory, actions }: MemoryCardViewProps) => {
-  const formattedDate = new Date(memory.date_of_event).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formattedDate = formatDate(memory.date_of_event);
 
   return (
     <Card className="flex-1 hover:shadow-lg transition-shadow">

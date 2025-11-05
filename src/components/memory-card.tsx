@@ -60,12 +60,14 @@ export const MemoryCard = ({ memory, isFirst, isLast }: MemoryCardProps) => {
   const handleSave = async () => {
     try {
       let finalImageUrl = memory.image_url;
+      let finalImageKey = memory.image_key;
 
       // Upload new image if one was selected
       if (imageUpload.imageFile) {
-        const uploadedUrl = await imageUpload.uploadImage();
-        if (uploadedUrl) {
-          finalImageUrl = uploadedUrl;
+        const uploadResult = await imageUpload.uploadImage();
+        if (uploadResult) {
+          finalImageUrl = uploadResult.publicUrl;
+          finalImageKey = uploadResult.path;
         }
       }
 
@@ -75,6 +77,7 @@ export const MemoryCard = ({ memory, isFirst, isLast }: MemoryCardProps) => {
         description: editedDescription,
         date_of_event: editedDate,
         image_url: finalImageUrl,
+        image_key: finalImageKey,
       });
 
       setIsEditing(false);

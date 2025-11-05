@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import type { Tables } from "@/types/supabase";
 import Image from "next/image";
+import { fromDateObject } from "@/lib/date-utils";
 
 type Memory = Tables<"memory">;
 
@@ -64,7 +65,7 @@ export const MemoryCardEdit = ({
               value={editedDate}
               onChange={(date) => {
                 if (date) {
-                  onDateChange(date.toISOString().split("T")[0]);
+                  onDateChange(fromDateObject(date));
                 }
               }}
             />

@@ -17,6 +17,7 @@ CREATE TABLE public.memory (
   date_of_event date NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  image_key varchar(64),
   CONSTRAINT memory_pkey PRIMARY KEY (id),
   CONSTRAINT memory_timeline_id_fkey FOREIGN KEY (timeline_id) REFERENCES public.timeline(id),
   CONSTRAINT memory_timeline_id_fkey1 FOREIGN KEY (timeline_id) REFERENCES public.timeline(id)

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
+import { getCurrentDate, fromDateObject } from "@/lib/date-utils";
 import {
   Dialog,
   DialogContent,
@@ -53,7 +54,7 @@ const MemoryFormContent = ({
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
-    date_of_event: new Date().toISOString().split("T")[0],
+    date_of_event: getCurrentDate(),
     image: null,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -123,20 +124,21 @@ const MemoryFormContent = ({
       // Upload image first
       const uploadResult = await upload(formData.image!);
 
-      // Create memory with uploaded image URL
+      // Create memory with uploaded image URL and key
       await createMemory.mutateAsync({
         timeline_id: timelineId,
         name: formData.name.trim(),
         description: formData.description.trim(),
         date_of_event: formData.date_of_event,
         image_url: uploadResult.publicUrl,
+        image_key: uploadResult.path,
       });
 
       // Reset form and close
       setFormData({
         name: "",
         description: "",
-        date_of_event: new Date().toISOString().split("T")[0],
+        date_of_event: getCurrentDate(),
         image: null,
       });
       setImagePreview(null);
@@ -237,7 +239,7 @@ const MemoryFormContent = ({
             if (date) {
               setFormData((prev) => ({
                 ...prev,
-                date_of_event: date.toISOString().split("T")[0],
+                date_of_event: fromDateObject(date),
               }));
             }
           }}

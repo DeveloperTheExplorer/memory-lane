@@ -126,6 +126,12 @@ export function LoginForm({
           </form>
         </CardContent>
       </Card>
+
+      <p className="mt-10 text-center text-xs leading-relaxed">
+        Since {"it's"} just you and I, here are the login credentials:<br />
+        <b>Email</b>: joe@example.com<br />
+        <b>Password</b>: memory-lane
+      </p>
     </div>
   )
 }

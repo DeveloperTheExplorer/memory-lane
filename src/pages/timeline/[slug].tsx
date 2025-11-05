@@ -1,48 +1,29 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Image as ImageIcon, Plus } from "lucide-react";
-import { useTimelineBySlug } from "@/hooks/use-timeline";
+import { ArrowLeft } from "lucide-react";
+import { useTimelineBySlug, useDeleteTimeline, useUpdateTimeline } from "@/hooks/use-timeline";
 import { useMemoriesByTimeline } from "@/hooks/use-memory";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MemoryCard, MemoryCardSkeleton } from "@/components/memory-card";
 import { CreateMemoryForm } from "@/components/create-memory-form";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
+import { TimelineDetailSkeleton } from "@/components/timeline-detail-skeleton";
+import { TimelineHeader } from "@/components/timeline-header";
+import { TimelineStats } from "@/components/timeline-stats";
+import { MemoriesSection } from "@/components/memories-section";
+import { TimelineErrorState } from "@/components/timeline-error-state";
 import { useAuth } from "@/contexts/auth-context";
-
-const TimelineDetailSkeleton = () => {
-
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header Skeleton */}
-      <div className="mb-8">
-        <Skeleton className="h-5 w-20 mb-6" />
-        <Skeleton className="h-10 w-3/4 mb-3" />
-        <Skeleton className="h-6 w-full mb-2" />
-        <Skeleton className="h-6 w-2/3" />
-        <div className="flex items-center gap-6 mt-6">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-      </div>
-
-      {/* Memories Skeleton */}
-      <div className="mt-12">
-        <Skeleton className="h-8 w-48 mb-8" />
-        {Array.from({ length: 3 }).map((_, i) => (
-          <MemoryCardSkeleton key={i} isFirst={i === 0} isLast={i === 2} />
-        ))}
-      </div>
-    </div>
-  );
-};
+import { compareDates, formatDate } from "@/lib/date-utils";
 
 export default function TimelineDetailPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { slug } = router.query;
   const [createMemoryOpen, setCreateMemoryOpen] = useState(false);
+  const [deleteTimelineOpen, setDeleteTimelineOpen] = useState(false);
+
+  const deleteTimeline = useDeleteTimeline();
+  const updateTimeline = useUpdateTimeline();
 
   // Fetch timeline by slug
   const {
@@ -58,6 +39,29 @@ export default function TimelineDetailPage() {
     error: memoriesError,
   } = useMemoriesByTimeline(timeline?.id || "", { limit: 100 }, !!timeline?.id);
 
+  // Handle timeline update
+  const handleUpdateTimeline = async (data: { name: string; description: string }) => {
+    if (!timeline) return;
+
+    await updateTimeline.mutateAsync({
+      id: timeline.id,
+      name: data.name,
+      description: data.description,
+    });
+  };
+
+  // Handle timeline deletion
+  const handleDeleteTimeline = async () => {
+    if (!timeline) return;
+
+    try {
+      await deleteTimeline.mutateAsync({ id: timeline.id });
+      router.push("/");
+    } catch (error) {
+      console.error("Failed to delete timeline:", error);
+    }
+  };
+
   // Loading state
   if (!slug || timelineLoading || (memoriesLoading && timeline)) {
     return <TimelineDetailSkeleton />;
@@ -66,61 +70,24 @@ export default function TimelineDetailPage() {
   // Error state
   if (timelineError || memoriesError) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Link href="/">
-          <Button variant="ghost" className="mb-6 gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Button>
-        </Link>
-        <Card className="border-destructive">
-          <CardContent className="pt-6">
-            <p className="text-destructive">
-              {timelineError?.message || memoriesError?.message || "Failed to load timeline"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <TimelineErrorState
+        type="error"
+        errorMessage={timelineError?.message || memoriesError?.message}
+      />
     );
   }
 
   // Not found state
   if (!timeline) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Link href="/">
-          <Button variant="ghost" className="mb-6 gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Button>
-        </Link>
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <h3 className="text-xl font-semibold mb-2">Timeline not found</h3>
-            <p className="text-muted-foreground text-center mb-6">
-              The timeline you're looking for doesn't exist or has been removed.
-            </p>
-            <Link href="/">
-              <Button>Browse All Timelines</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <TimelineErrorState type="not-found" />;
   }
 
   // Sort memories by date (oldest to newest)
   const sortedMemories = memories
-    ? [...memories].sort(
-      (a, b) => new Date(a.date_of_event).getTime() - new Date(b.date_of_event).getTime()
-    )
+    ? [...memories].sort((a, b) => compareDates(a.date_of_event, b.date_of_event))
     : [];
 
-  const formattedCreatedDate = new Date(timeline.created_at).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formattedCreatedDate = formatDate(timeline.created_at);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -133,67 +100,28 @@ export default function TimelineDetailPage() {
       </Link>
 
       {/* Timeline Header */}
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold tracking-tight mb-4">{timeline.name}</h1>
-        <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-          {timeline.description}
-        </p>
-        <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="h-4 w-4" />
-            <span>
-              {sortedMemories.length} {sortedMemories.length === 1 ? "memory" : "memories"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>Created {formattedCreatedDate}</span>
-          </div>
-        </div>
-      </div>
+      <TimelineHeader
+        name={timeline.name}
+        description={timeline.description || ""}
+        isAuthenticated={!!user}
+        onUpdate={handleUpdateTimeline}
+        onDelete={() => setDeleteTimelineOpen(true)}
+        isUpdating={updateTimeline.isPending}
+      />
+
+      {/* Timeline Stats */}
+      <TimelineStats
+        memoryCount={sortedMemories.length}
+        createdDate={formattedCreatedDate}
+      />
 
       {/* Memories Section */}
-      <div>
-        {user && (
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-semibold">Memories</h2>
-            <Button className="gap-2" onClick={() => setCreateMemoryOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Add Memory
-            </Button>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {sortedMemories.length === 0 && (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No memories yet</h3>
-              <p className="text-muted-foreground text-center mb-6">
-                Start capturing your memories by adding your first one to this timeline.
-              </p>
-              <Button className="gap-2" onClick={() => setCreateMemoryOpen(true)}>
-                <Plus className="h-4 w-4" />
-                Add Your First Memory
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Memory Timeline */}
-        {sortedMemories.length > 0 && (
-          <div className="relative">
-            {sortedMemories.map((memory, index) => (
-              <MemoryCard
-                key={memory.id}
-                memory={memory}
-                isFirst={index === 0}
-                isLast={index === sortedMemories.length - 1}
-              />
-            ))}
-          </div>
-        )}
+      <div className="mt-12">
+        <MemoriesSection
+          memories={sortedMemories}
+          isAuthenticated={!!user}
+          onAddMemory={() => setCreateMemoryOpen(true)}
+        />
       </div>
 
       {/* Create Memory Form Modal/Drawer */}
@@ -201,6 +129,16 @@ export default function TimelineDetailPage() {
         timelineId={timeline.id}
         open={createMemoryOpen}
         onOpenChange={setCreateMemoryOpen}
+      />
+
+      {/* Delete Timeline Confirmation */}
+      <DeleteConfirmationDialog
+        open={deleteTimelineOpen}
+        onOpenChange={setDeleteTimelineOpen}
+        onConfirm={handleDeleteTimeline}
+        title="Delete Timeline"
+        description={`Are you sure you want to delete "${timeline.name}"? This will also delete all memories in this timeline. This action cannot be undone.`}
+        isDeleting={deleteTimeline.isPending}
       />
     </div>
   );

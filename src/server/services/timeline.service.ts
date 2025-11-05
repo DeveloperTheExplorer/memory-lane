@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/supabase';
+import { MemoryService } from './memory.service';
 
 type Timeline = Database['public']['Tables']['timeline']['Row'];
 type CreateTimelineInput = {
@@ -14,8 +15,10 @@ type UpdateTimelineInput = {
 
 export class TimelineService {
   private supabase;
+  private accessToken?: string;
 
   constructor(accessToken?: string) {
+    this.accessToken = accessToken;
     this.supabase = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -179,7 +182,8 @@ export class TimelineService {
     }
 
     if (memories && memories.length > 0) {
-      throw new Error('Cannot delete timeline with existing memories. Please delete all memories first.');
+      const memoryService = new MemoryService(this.accessToken);
+      await memoryService.deleteByTimelineId(id);
     }
 
     const { error } = await this.supabase

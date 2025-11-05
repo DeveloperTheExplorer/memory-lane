@@ -45,7 +45,7 @@ export function useImageUpload(options?: UseImageUploadOptions) {
   const uploadImage = React.useCallback(async () => {
     if (!imageFile) return null;
     const result = await upload(imageFile);
-    return result.publicUrl;
+    return result;
   }, [imageFile, upload]);
 
   const reset = React.useCallback(() => {

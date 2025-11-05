@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useState } from "react"
+import { toDateObject, formatDateShort } from "@/lib/date-utils"
 
 interface DatePickerProps {
   label: string
@@ -21,7 +22,7 @@ interface DatePickerProps {
 
 export function DatePicker({ label, id, value, onChange }: DatePickerProps) {
   const [open, setOpen] = useState(false)
-  const date = value ? (typeof value === "string" ? new Date(value) : value) : undefined
+  const date = value ? toDateObject(value) : undefined
   const htmlId = id || `date-picker-${label.toLowerCase().replace(/ /g, '-')}`
 
   return (
@@ -36,7 +37,7 @@ export function DatePicker({ label, id, value, onChange }: DatePickerProps) {
             id={htmlId}
             className="w-48 justify-between font-normal"
           >
-            {date ? date.toLocaleDateString() : "Select date"}
+            {date ? formatDateShort(date) : "Select date"}
             <ChevronDownIcon />
           </Button>
         </PopoverTrigger>

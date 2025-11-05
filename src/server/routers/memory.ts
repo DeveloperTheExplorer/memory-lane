@@ -7,6 +7,7 @@ const createMemorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().min(1, 'Description is required'),
   image_url: z.string().url('Must be a valid URL'),
+  image_key: z.string().min(1, 'Image key is required'),
   date_of_event: z.string(), // ISO date string
   timeline_id: z.string().uuid('Must be a valid timeline ID'),
 });
@@ -16,6 +17,7 @@ const updateMemorySchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
   image_url: z.string().url().optional(),
+  image_key: z.string().optional(),
   date_of_event: z.string().optional(),
   timeline_id: z.string().uuid().optional(),
 });

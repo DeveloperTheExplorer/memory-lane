@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
+import { formatDateShort } from "@/lib/date-utils";
 
 const TimelineCardSkeleton = () => {
   return (
@@ -123,7 +124,7 @@ const Home = () => {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(timeline.created_at).toLocaleDateString()}</span>
+                      <span>{formatDateShort(timeline.created_at)}</span>
                     </div>
                   </div>
                 </CardContent>
