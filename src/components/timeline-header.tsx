@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Pencil, Trash2, MoreVertical, X, Check, Share2, Copy, CheckCheck } from "lucide-react";
+import { Pencil, Trash2, MoreVertical, X, Check, Share2, Copy, CheckCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { toast } from "sonner";
 
 interface TimelineHeaderProps {
   name: string;
@@ -62,23 +63,19 @@ export const TimelineHeader = ({
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
-    
-    // Check if navigator.share is available
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: name,
-          text: description,
-          url: url,
-        });
-      } catch (error) {
-        // User cancelled or share failed
-        console.log("Share cancelled or failed:", error);
+    try {
+      await navigator.share({
+        title: name,
+        text: description,
+        url: window.location.href,
+      });
+    } catch (error) {
+      // User cancelled or share failed
+      if (error instanceof Error && error.message.includes('canceled')) {
+        // User cancelled the share
+        return;
       }
-    } else {
-      // Fallback: open popover with URL
-      setIsSharePopoverOpen(true);
+      toast.error("Failed to open share menu. Please copy the URL manually.");
     }
   };
 
@@ -117,7 +114,7 @@ export const TimelineHeader = ({
           <div className="flex items-center gap-2">
             <Popover open={isSharePopoverOpen} onOpenChange={setIsSharePopoverOpen}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleShare}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
                   <Share2 className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -146,10 +143,17 @@ export const TimelineHeader = ({
                   {isCopied && (
                     <p className="text-xs text-muted-foreground">Link copied to clipboard!</p>
                   )}
+                  {
+                    !!navigator.share && (
+                      <Button variant="outline" onClick={handleShare}>
+                        More ways to share <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    )
+                  }
                 </div>
               </PopoverContent>
             </Popover>
-            
+
             {isAuthenticated && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

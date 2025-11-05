@@ -1,3 +1,4 @@
+import Head from "next/head"
 import { LoginForm } from "@/components/login-form"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/router"
@@ -29,10 +30,25 @@ export default function Page() {
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
+    <>
+      <Head>
+        <title>Login - Memory Lane</title>
+        <meta
+          name="description"
+          content="Log in to Memory Lane to access your personal collection of timelines and memories."
+        />
+        <meta property="og:title" content="Login - Memory Lane" />
+        <meta
+          property="og:description"
+          content="Log in to Memory Lane to access your personal collection of timelines and memories."
+        />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <LoginForm />
+        </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -10,7 +11,7 @@ import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialo
 import { TimelineDetailSkeleton } from "@/components/timeline-detail-skeleton";
 import { TimelineHeader } from "@/components/timeline-header";
 import { TimelineStats } from "@/components/timeline-stats";
-import { MemoriesSection } from "@/components/memories-section";
+import { MemoriesSection, type SortOrder } from "@/components/memories-section";
 import { TimelineErrorState } from "@/components/timeline-error-state";
 import { useAuth } from "@/contexts/auth-context";
 import { compareDates, formatDate } from "@/lib/date-utils";
@@ -21,6 +22,7 @@ export default function TimelineDetailPage() {
   const { slug } = router.query;
   const [createMemoryOpen, setCreateMemoryOpen] = useState(false);
   const [deleteTimelineOpen, setDeleteTimelineOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("old-to-new");
 
   const deleteTimeline = useDeleteTimeline();
   const updateTimeline = useUpdateTimeline();
@@ -82,65 +84,82 @@ export default function TimelineDetailPage() {
     return <TimelineErrorState type="not-found" />;
   }
 
-  // Sort memories by date (oldest to newest)
+  // Sort memories by date based on selected order
   const sortedMemories = memories
-    ? [...memories].sort((a, b) => compareDates(a.date_of_event, b.date_of_event))
+    ? [...memories].sort((a, b) => {
+      const comparison = compareDates(a.date_of_event, b.date_of_event);
+      return sortOrder === "old-to-new" ? comparison : -comparison;
+    })
     : [];
 
   const formattedCreatedDate = formatDate(timeline.created_at);
 
+  const pageTitle = `${timeline.name} - Memory Lane`;
+  const pageDescription = timeline.description || `Explore memories from ${timeline.name}. A personal timeline of cherished moments and experiences.`;
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Back Button */}
-      <Link href="/">
-        <Button variant="ghost" className="mb-6 gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Home
-        </Button>
-      </Link>
+    <>
+      <Head>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Back Button */}
+        <Link href="/">
+          <Button variant="ghost" className="mb-6 gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
 
-      {/* Timeline Header */}
-      <TimelineHeader
-        name={timeline.name}
-        description={timeline.description || ""}
-        isAuthenticated={!!user}
-        onUpdate={handleUpdateTimeline}
-        onDelete={() => setDeleteTimelineOpen(true)}
-        isUpdating={updateTimeline.isPending}
-      />
-
-      {/* Timeline Stats */}
-      <TimelineStats
-        memoryCount={sortedMemories.length}
-        createdDate={formattedCreatedDate}
-      />
-
-      {/* Memories Section */}
-      <div className="mt-12">
-        <MemoriesSection
-          memories={sortedMemories}
+        {/* Timeline Header */}
+        <TimelineHeader
+          name={timeline.name}
+          description={timeline.description || ""}
           isAuthenticated={!!user}
-          onAddMemory={() => setCreateMemoryOpen(true)}
+          onUpdate={handleUpdateTimeline}
+          onDelete={() => setDeleteTimelineOpen(true)}
+          isUpdating={updateTimeline.isPending}
+        />
+
+        {/* Timeline Stats */}
+        <TimelineStats
+          memoryCount={sortedMemories.length}
+          createdDate={formattedCreatedDate}
+        />
+
+        {/* Memories Section */}
+        <div className="mt-12">
+          <MemoriesSection
+            memories={sortedMemories}
+            isAuthenticated={!!user}
+            onAddMemory={() => setCreateMemoryOpen(true)}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+          />
+        </div>
+
+        {/* Create Memory Form Modal/Drawer */}
+        <CreateMemoryForm
+          timelineId={timeline.id}
+          open={createMemoryOpen}
+          onOpenChange={setCreateMemoryOpen}
+        />
+
+        {/* Delete Timeline Confirmation */}
+        <DeleteConfirmationDialog
+          open={deleteTimelineOpen}
+          onOpenChange={setDeleteTimelineOpen}
+          onConfirm={handleDeleteTimeline}
+          title="Delete Timeline"
+          description={`Are you sure you want to delete "${timeline.name}"? This will also delete all memories in this timeline. This action cannot be undone.`}
+          isDeleting={deleteTimeline.isPending}
         />
       </div>
-
-      {/* Create Memory Form Modal/Drawer */}
-      <CreateMemoryForm
-        timelineId={timeline.id}
-        open={createMemoryOpen}
-        onOpenChange={setCreateMemoryOpen}
-      />
-
-      {/* Delete Timeline Confirmation */}
-      <DeleteConfirmationDialog
-        open={deleteTimelineOpen}
-        onOpenChange={setDeleteTimelineOpen}
-        onConfirm={handleDeleteTimeline}
-        title="Delete Timeline"
-        description={`Are you sure you want to delete "${timeline.name}"? This will also delete all memories in this timeline. This action cannot be undone.`}
-        isDeleting={deleteTimeline.isPending}
-      />
-    </div>
+    </>
   );
 }
 

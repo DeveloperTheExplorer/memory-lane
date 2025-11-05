@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { ProtectedRoute } from '@/components/protected-route'
 import { Button } from '@/components/ui/button'
@@ -61,6 +62,19 @@ const CreateTimelinePage = () => {
 
   return (
     <ProtectedRoute>
+      <Head>
+        <title>Create Timeline - Memory Lane</title>
+        <meta
+          name="description"
+          content="Create a new timeline to organize your memories chronologically. Start capturing your life's moments on Memory Lane."
+        />
+        <meta property="og:title" content="Create Timeline - Memory Lane" />
+        <meta
+          property="og:description"
+          content="Create a new timeline to organize your memories chronologically. Start capturing your life's moments on Memory Lane."
+        />
+        <meta property="og:type" content="website" />
+      </Head>
       <div className="relative min-h-screen overflow-hidden">
 
         <main className="relative flex min-h-screen w-full max-w-4xl mx-auto flex-col py-16 px-8 sm:px-16">

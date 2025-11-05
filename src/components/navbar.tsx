@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -20,7 +21,6 @@ export function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      console.log('scrollPosition :>> ', scrollPosition);
       setIsScrolled(scrollPosition > 10);
     };
 
@@ -42,6 +42,7 @@ export function Navbar() {
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
+          <ThemeToggle />
           {user ? (
             <>
               <Popover>

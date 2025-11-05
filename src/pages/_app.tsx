@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import "./globals.css";
 import BaseLayout from "@/components/base-layout";
 import { AuthProvider } from "@/contexts/auth-context";
+import { ThemeProvider } from "@/contexts/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,27 +19,13 @@ const geistMono = Geist_Mono({
 });
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <AuthProvider>
-      <BaseLayout>
-        <Component {...pageProps} />
-      </BaseLayout>
-    </AuthProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AuthProvider>
+        <BaseLayout>
+          <Component {...pageProps} />
+        </BaseLayout>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 export default trpc.withTRPC(MyApp);
-
-// export default function RootLayout({
-//   children,
-// }: Readonly<{
-//   children: React.ReactNode;
-// }>) {
-//   return (
-//     <html lang="en">
-//       <body
-//         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-//       >
-//         {children}
-//       </body>
-//     </html>
-//   );
-// }
