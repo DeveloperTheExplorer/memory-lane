@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Pencil, Trash2, MoreVertical, X, Check } from "lucide-react";
+import { Pencil, Trash2, MoreVertical, X, Check, Share2, Copy, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface TimelineHeaderProps {
   name: string;
@@ -29,6 +34,8 @@ export const TimelineHeader = ({
 }: TimelineHeaderProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({ name, description });
+  const [isSharePopoverOpen, setIsSharePopoverOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   // Sync form data when props change
   useEffect(() => {
@@ -54,6 +61,40 @@ export const TimelineHeader = ({
     }
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    
+    // Check if navigator.share is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: name,
+          text: description,
+          url: url,
+        });
+      } catch (error) {
+        // User cancelled or share failed
+        console.log("Share cancelled or failed:", error);
+      }
+    } else {
+      // Fallback: open popover with URL
+      setIsSharePopoverOpen(true);
+    }
+  };
+
+  const handleCopyUrl = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy URL:", error);
+    }
+  };
+
   return (
     <div className="mb-12">
       <div className="flex items-start justify-between mb-4">
@@ -72,27 +113,66 @@ export const TimelineHeader = ({
           <h1 className="text-4xl font-bold tracking-tight">{name}</h1>
         )}
 
-        {isAuthenticated && !isEditing && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleStartEdit}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit Timeline
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Timeline
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {!isEditing && (
+          <div className="flex items-center gap-2">
+            <Popover open={isSharePopoverOpen} onOpenChange={setIsSharePopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleShare}>
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm">Share Timeline</h4>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={typeof window !== 'undefined' ? window.location.href : ''}
+                      readOnly
+                      className="flex-1 text-sm"
+                    />
+                    <Button
+                      variant={isCopied ? "default" : "outline"}
+                      size="icon"
+                      onClick={handleCopyUrl}
+                      className="shrink-0"
+                    >
+                      {isCopied ? (
+                        <CheckCheck className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {isCopied && (
+                    <p className="text-xs text-muted-foreground">Link copied to clipboard!</p>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            {isAuthenticated && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleStartEdit}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit Timeline
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Timeline
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         )}
 
         {isAuthenticated && isEditing && (
