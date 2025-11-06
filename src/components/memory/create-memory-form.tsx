@@ -330,7 +330,7 @@ export function CreateMemoryForm({
               story.
             </SheetDescription>
           </SheetHeader>
-          <div className="py-4">
+          <div className="p-4 pt-2 sm:p-6 sm:pt-2">
             <MemoryFormContent
               timelineId={timelineId}
               onSuccess={handleSuccess}
@@ -343,7 +343,7 @@ export function CreateMemoryForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Create New Memory</DialogTitle>
           <DialogDescription>
