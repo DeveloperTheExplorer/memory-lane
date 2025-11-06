@@ -25,3 +25,26 @@ export function getSupabaseAccessToken(): string | null {
   }
 }
 
+/**
+ * Extract Supabase access token from Authorization header
+ * Used in API routes to authenticate requests
+ * 
+ * @param authHeader - Authorization header value (e.g., "Bearer <token>")
+ * @returns The access token or undefined if invalid/missing
+ * 
+ * @example
+ * // In API routes
+ * const token = extractAccessToken(req.headers.authorization);
+ */
+export function extractAccessToken(authHeader: string | undefined): string | undefined {
+  if (!authHeader) return undefined;
+
+  // Authorization header format: "Bearer <token>"
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return undefined;
+  }
+
+  return parts[1];
+}
+

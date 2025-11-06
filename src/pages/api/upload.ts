@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
 import { readFileSync } from 'fs';
 import { UploadService } from '../../server/services/upload.service';
+import { extractAccessToken } from '../../lib/auth-utils';
 
 // Disable the default body parser
 export const config = {
@@ -19,21 +20,6 @@ type UploadResponse = {
   };
   error?: string;
 };
-
-/**
- * Extract Supabase access token from Authorization header
- */
-function extractAccessToken(authHeader: string | undefined): string | undefined {
-  if (!authHeader) return undefined;
-
-  // Authorization header format: "Bearer <token>"
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    return undefined;
-  }
-
-  return parts[1];
-}
 
 export default async function handler(
   req: NextApiRequest,

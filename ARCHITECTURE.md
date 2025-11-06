@@ -687,23 +687,27 @@ Memory Lane is deployed on **Vercel**, the platform built by the creators of Nex
 ### Why Vercel?
 
 1. **Next.js Native Support**
+
    - Built by the same team that created Next.js
    - Zero-configuration deployment
    - Automatic optimizations for Next.js applications
 
 2. **Performance**
+
    - Global Edge Network (CDN) across 100+ locations
    - Automatic image optimization
    - Smart caching strategies
    - Sub-100ms cold starts
 
 3. **Developer Experience**
+
    - Git integration (auto-deploy on push)
    - Preview deployments for every PR
    - Instant rollbacks
    - Real-time logs and analytics
 
 4. **Scalability**
+
    - Automatic scaling based on traffic
    - Serverless functions for API routes
    - No infrastructure management required
@@ -721,7 +725,7 @@ Memory Lane is deployed on **Vercel**, the platform built by the creators of Nex
 const config = {
   // Image optimization via Vercel
   images: {
-    domains: ['your-supabase-project.supabase.co'],
+    domains: ["your-supabase-project.supabase.co"],
   },
   // Environment variables are managed in Vercel dashboard
 };
@@ -761,6 +765,7 @@ git push origin feature-branch  # Creates preview URL
 ### Performance Metrics
 
 The Vercel deployment provides:
+
 - **Lighthouse Score:** 95+ (Performance, SEO, Accessibility)
 - **Time to First Byte (TTFB):** <100ms globally
 - **First Contentful Paint (FCP):** <1.5s
@@ -769,6 +774,7 @@ The Vercel deployment provides:
 ### Monitoring & Analytics
 
 Vercel provides built-in:
+
 - Real-time performance monitoring
 - Web Vitals tracking
 - Error reporting

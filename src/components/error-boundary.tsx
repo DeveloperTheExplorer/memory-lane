@@ -17,6 +17,14 @@ type ErrorBoundaryState = {
 
 /**
  * Error boundary component to catch and handle React errors
+ * 
+ * NOTE: This MUST be a class component because React Error Boundaries
+ * require lifecycle methods (getDerivedStateFromError, componentDidCatch)
+ * that are only available in class components. As of React 19, there is
+ * no functional component / Hook equivalent for error boundaries.
+ * 
+ * This is the one legitimate exception to using functional components
+ * throughout the codebase.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {

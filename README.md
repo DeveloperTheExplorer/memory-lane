@@ -224,6 +224,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed architecture documentation
 **Live Application:** [https://memory-lane.arvini.co/](https://memory-lane.arvini.co/)
 
 This project is deployed on **Vercel**, providing:
+
 - Global CDN distribution
 - Automatic HTTPS
 - Instant deployments
